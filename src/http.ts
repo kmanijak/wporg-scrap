@@ -1,4 +1,11 @@
-const USER_AGENT = 'wporg-scrap/0.1 (+<<YOUR_EMAIL>>)';
+const CONTACT_EMAIL = process.env.WPORG_SCRAP_EMAIL;
+if (!CONTACT_EMAIL) {
+  throw new Error(
+    'Set WPORG_SCRAP_EMAIL to a contact email — wp.org asks scrapers to be identifiable. ' +
+      'Example: WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce',
+  );
+}
+const USER_AGENT = `wporg-scrap/0.1 (+${CONTACT_EMAIL})`;
 const TIMEOUT_MS = 15_000;
 const DELAY_MS = 500;
 const MAX_429_RETRIES = 3;

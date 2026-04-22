@@ -2,12 +2,25 @@
 
 Scrape a WordPress.org plugin support forum into a local JSON file.
 
+## Configuration
+
+The scraper sends every request with a `User-Agent` that includes a contact
+email, so wp.org admins can reach you if something misbehaves. This is
+required — set it via environment variable before running:
+
+```bash
+export WPORG_SCRAP_EMAIL=you@example.com
+```
+
+If `WPORG_SCRAP_EMAIL` is unset, the CLI throws a clear error before making
+any network request.
+
 ## Use it in this repo
 
 ```bash
 pnpm install
-pnpm scrape woocommerce              # full crawl → data/woocommerce.json
-pnpm scrape woocommerce --pages 3    # smoke test → data/woocommerce.partial.json
+WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce              # full crawl → data/woocommerce.json
+WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce --pages 3    # smoke test → data/woocommerce.partial.json
 ```
 
 Output shape: `{ slug, scraped_at, topics: [{ url, topic_slug, title, author, pub_date, last_activity_at, last_activity_author, reply_count, voice_count, is_resolved, opener: { author, pub_date, body_md }, replies: [...] }] }`.
@@ -31,10 +44,10 @@ pnpm add file:../wporg-scrap        # copy
 pnpm add link:../wporg-scrap        # symlink (picks up edits)
 ```
 
-Then run the CLI via the `bin`:
+Then run the CLI via the `bin` (don't forget the env var):
 
 ```bash
-pnpm exec wporg-scrape woocommerce --pages 3
+WPORG_SCRAP_EMAIL=you@example.com pnpm exec wporg-scrape woocommerce --pages 3
 ```
 
 The script executes its TypeScript source via `tsx` (no build step). Output lands in `./data/{slug}.json` (or `.partial.json` if `--pages < 50`) in the **consuming project's** working directory.
@@ -47,4 +60,3 @@ The script executes its TypeScript source via `tsx` (no build step). Output land
 - Hydration skips individual topic failures and exits non-zero if any were skipped.
 - Atomic write (`.tmp` → rename).
 
-Spec and implementation plan live under `docs/superpowers/`.
