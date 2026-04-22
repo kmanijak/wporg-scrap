@@ -23,13 +23,6 @@ export type Topic = ListingRow & {
   replies: Post[];
 };
 
-// Legacy v1 shape. Retained through the refactor; removed in Task 8.
-export type ScrapeResult = {
-  slug: string;
-  scraped_at: string;
-  topics: Topic[];
-};
-
 export type StopReason = 'complete' | 'cutoff' | 'end-of-archive' | 'max-pages';
 
 export type PartialFailure = {
