@@ -1,11 +1,15 @@
 {
   "name": "wporg-scrap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=20"
+  },
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
   },
   "bin": {
     "wporg-scrape": "src/scrape.ts"
@@ -15,8 +19,10 @@
   },
   "files": [
     "src",
+    "schema",
     "tsconfig.json",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {
     "fast-xml-parser": "^4.5.0",
