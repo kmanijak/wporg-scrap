@@ -3,7 +3,7 @@ import { writeFile, rename, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseListingPage, buildListingUrl } from './listings.ts';
 import { createHttpClient, HttpBailError, type HttpClient } from './http.ts';
-import { hydrateTopic } from './threads.ts';
+import { hydrateTopic } from './hydrate.ts';
 import type { ListingRow, Topic, ScrapeResult } from './types.ts';
 
 type Args = {
