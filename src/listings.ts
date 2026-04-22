@@ -27,7 +27,6 @@ export function parseListingPage(html: string): ListingRow[] {
     if (!topic_slug || seen.has(topic_slug)) continue;
     seen.add(topic_slug);
 
-    // Title text: strip the resolved span's aria-label if present, then trim.
     const title = titleLink.text.trim();
 
     // Opener author: span.bbp-author-name inside .bbp-topic-started-by in
@@ -37,11 +36,16 @@ export function parseListingPage(html: string): ListingRow[] {
     );
     const author = authorEl?.text.trim() ?? '';
 
+    const parseCount = (text: string | undefined): number => {
+      const n = Number(text?.trim() ?? '');
+      return Number.isFinite(n) ? n : 0;
+    };
+
     const voiceEl = el.querySelector('li.bbp-topic-voice-count');
-    const voice_count = voiceEl ? Number(voiceEl.text.trim()) : 0;
+    const voice_count = parseCount(voiceEl?.text);
 
     const replyEl = el.querySelector('li.bbp-topic-reply-count');
-    const reply_count = replyEl ? Number(replyEl.text.trim()) : 0;
+    const reply_count = parseCount(replyEl?.text);
 
     const freshnessEl = el.querySelector('li.bbp-topic-freshness');
     const last_activity_at = parseFreshnessDate(freshnessEl);
@@ -79,7 +83,7 @@ function parseFreshnessDate(el: HTMLElement | null | undefined): string {
   // No <time datetime=...> elements are present on wp.org support listings.
   const linkWithTitle = el.querySelector('a[title]');
   if (linkWithTitle) {
-    const title = (linkWithTitle.getAttribute('title') ?? '').replace(' at ', ' ');
+    const title = (linkWithTitle.getAttribute('title') ?? '').replace(' at ', ' ') + ' UTC';
     const d = new Date(title);
     if (!Number.isNaN(d.getTime())) return d.toISOString();
   }
