@@ -1,0 +1,20 @@
+{
+  "name": "wporg-scrap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx src/scrape.ts"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.0",
+    "node-html-parser": "^6.1.13",
+    "turndown": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/turndown": "^5.0.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
