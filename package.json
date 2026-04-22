@@ -6,9 +6,17 @@
   "engines": {
     "node": ">=20"
   },
+  "bin": {
+    "wporg-scrape": "src/scrape.ts"
+  },
   "scripts": {
     "scrape": "tsx src/scrape.ts"
   },
+  "files": [
+    "src",
+    "tsconfig.json",
+    "README.md"
+  ],
   "dependencies": {
     "fast-xml-parser": "^4.5.0",
     "node-html-parser": "^6.1.13",

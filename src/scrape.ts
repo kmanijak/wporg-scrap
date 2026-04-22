@@ -2,7 +2,7 @@
 import { writeFile, rename, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseListingPage, buildListingUrl } from './listings.ts';
-import { fetchText } from './http.ts';
+import { fetchText, HttpBailError } from './http.ts';
 import { hydrateTopic } from './threads.ts';
 import type { ListingRow, Topic, ScrapeResult } from './types.ts';
 
@@ -42,7 +42,17 @@ async function discover(slug: string, maxPages: number): Promise<ListingRow[]> {
   const byTopicSlug = new Map<string, ListingRow>();
   for (let p = 1; p <= maxPages; p++) {
     const url = buildListingUrl(slug, p);
-    const html = await fetchText(url);
+    let html: string;
+    try {
+      html = await fetchText(url);
+    } catch (err) {
+      // 404 after a run of successful pages = end of archive, not a failure.
+      if (err instanceof HttpBailError && err.status === 404 && p > 1) {
+        console.error(`[discover ${p}/${maxPages}] 404 — end of archive`);
+        break;
+      }
+      throw err;
+    }
     const rows = parseListingPage(html);
     console.error(
       `[discover ${p}/${maxPages}] ${rows.length} rows (${

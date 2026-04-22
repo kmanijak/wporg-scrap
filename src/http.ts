@@ -14,10 +14,12 @@ async function throttle(): Promise<void> {
   lastRequestAt = Date.now();
 }
 
-class HttpBailError extends Error {
-  constructor(message: string) {
+export class HttpBailError extends Error {
+  readonly status: number | null;
+  constructor(message: string, status: number | null = null) {
     super(message);
     this.name = 'HttpBailError';
+    this.status = status;
   }
 }
 
@@ -38,7 +40,7 @@ export async function fetchText(url: string): Promise<string> {
 
       if (res.status === 429) {
         if (rateLimitRetries >= MAX_429_RETRIES) {
-          throw new HttpBailError(`429 exceeded retries at ${url}`);
+          throw new HttpBailError(`429 exceeded retries at ${url}`, 429);
         }
         rateLimitRetries += 1;
         const retryAfterHeader = res.headers.get('Retry-After');
@@ -53,7 +55,7 @@ export async function fetchText(url: string): Promise<string> {
 
       if (res.status >= 500) {
         if (serverErrorRetries >= MAX_5XX_RETRIES) {
-          throw new HttpBailError(`${res.status} exceeded retries at ${url}`);
+          throw new HttpBailError(`${res.status} exceeded retries at ${url}`, res.status);
         }
         serverErrorRetries += 1;
         console.error(
@@ -64,7 +66,7 @@ export async function fetchText(url: string): Promise<string> {
       }
 
       if (!res.ok) {
-        throw new HttpBailError(`HTTP ${res.status} ${res.statusText} at ${url}`);
+        throw new HttpBailError(`HTTP ${res.status} ${res.statusText} at ${url}`, res.status);
       }
 
       return await res.text();
