@@ -51,17 +51,19 @@ export async function discover(options: DiscoverOptions): Promise<DiscoverResult
     // ancient announcements cannot falsely trigger early stop on page 1.
     const nonSticky = pageRows.filter((r) => !r.is_sticky);
     if (cutoffIso !== undefined && nonSticky.length > 0) {
-      const minActivity = nonSticky.reduce(
-        (m, r) => (r.last_activity_at && r.last_activity_at < m ? r.last_activity_at : m),
-        nonSticky[0]!.last_activity_at,
-      );
-      if (minActivity && minActivity <= cutoffIso) {
-        // Include this page's rows (filtered per skipStickies) then stop.
-        for (const row of skipStickies ? nonSticky : pageRows) {
-          if (!byTopicSlug.has(row.topic_slug)) byTopicSlug.set(row.topic_slug, row);
+      const activityDates = nonSticky
+        .map((r) => r.last_activity_at)
+        .filter((d) => d.length > 0);
+      if (activityDates.length > 0) {
+        const minActivity = activityDates.reduce((m, d) => (d < m ? d : m));
+        if (minActivity <= cutoffIso) {
+          // Include this page's rows (filtered per skipStickies) then stop.
+          for (const row of skipStickies ? nonSticky : pageRows) {
+            if (!byTopicSlug.has(row.topic_slug)) byTopicSlug.set(row.topic_slug, row);
+          }
+          stopReason = 'cutoff';
+          break;
         }
-        stopReason = 'cutoff';
-        break;
       }
     }
 
