@@ -24,7 +24,6 @@ export async function hydrateTopic(row: ListingRow): Promise<Topic> {
   const channel = parsed?.rss?.channel;
   if (!channel) throw new Error(`Missing RSS channel at ${feedUrl}`);
 
-  const channelPubDate = normalizePubDate(channel.pubDate);
   const itemsRaw = channel.item;
   const items: RssItem[] = Array.isArray(itemsRaw)
     ? itemsRaw
@@ -44,23 +43,16 @@ export async function hydrateTopic(row: ListingRow): Promise<Topic> {
     };
   });
 
-  // Primary: match channel pubDate to an item (per spec).
-  // Fallback: use the earliest-dated item as the opener (handles feeds where
-  // the channel omits <pubDate>, which occurs on real wp.org thread feeds).
-  let openerIdx = channelPubDate
-    ? posts.findIndex((p) => p.pub_date === channelPubDate)
-    : -1;
-
-  if (openerIdx < 0) {
-    // Fall back to the item with the earliest pub_date.
-    openerIdx = posts.reduce(
-      (minIdx, p, i) =>
-        p.pub_date && (!posts[minIdx]!.pub_date || p.pub_date < posts[minIdx]!.pub_date)
-          ? i
-          : minIdx,
-      0,
-    );
-  }
+  // Opener = the item with the earliest pub_date. The channel <pubDate> that
+  // the original spec suggested matching against is absent on real wp.org
+  // thread feeds (only <lastBuildDate> is present), so we pick by item dates.
+  const openerIdx = posts.reduce(
+    (minIdx, p, i) =>
+      p.pub_date && (!posts[minIdx]!.pub_date || p.pub_date < posts[minIdx]!.pub_date)
+        ? i
+        : minIdx,
+    0,
+  );
 
   const opener = posts[openerIdx]!;
   const replies = posts.filter((_, i) => i !== openerIdx);

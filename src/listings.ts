@@ -18,7 +18,6 @@ export function parseListingPage(html: string): ListingRow[] {
   const topicEls = root.querySelectorAll('ul[id^="bbp-topic-"]');
 
   for (const el of topicEls) {
-
     const titleLink = el.querySelector('li.bbp-topic-title a.bbp-topic-permalink');
     if (!titleLink) continue;
 
@@ -77,10 +76,8 @@ export function parseListingPage(html: string): ListingRow[] {
 
 function parseFreshnessDate(el: HTMLElement | null | undefined): string {
   if (!el) return '';
-  // Branch B only: <a title="April 20, 2026 at 8:11 am"> — absolute date in a
-  // title attribute. The "at" keyword is not understood by Date.parse(), so we
-  // replace it with a space before parsing.
-  // No <time datetime=...> elements are present on wp.org support listings.
+  // wp.org listing freshness dates are exposed as <a title="Month DD, YYYY at H:MM am"> only.
+  // The title is in UTC; append " UTC" before parsing so the runner's local TZ doesn't shift the ISO output.
   const linkWithTitle = el.querySelector('a[title]');
   if (linkWithTitle) {
     const title = (linkWithTitle.getAttribute('title') ?? '').replace(' at ', ' ') + ' UTC';
