@@ -13,14 +13,11 @@ export function parseListingPage(html: string): ListingRow[] {
   const seen = new Set<string>();
 
   // Row-scoping selector: ul[id^="bbp-topic-"] matches all topic rows.
-  // Sticky topics carry the class "sticky" on the ul; we skip them so only
-  // the 30 paginated topics are returned (stickies repeat on every page).
+  // Sticky topics carry the class "sticky" on the ul; we include them as they are
+  // legitimate forum threads (the de-dup on topic_slug handles any repeats safely).
   const topicEls = root.querySelectorAll('ul[id^="bbp-topic-"]');
 
   for (const el of topicEls) {
-    // Skip sticky topics — they appear on every page and are not part of the
-    // paginated listing.
-    if (el.classList.contains('sticky')) continue;
 
     const titleLink = el.querySelector('li.bbp-topic-title a.bbp-topic-permalink');
     if (!titleLink) continue;
