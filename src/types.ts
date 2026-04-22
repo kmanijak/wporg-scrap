@@ -43,6 +43,12 @@ export type CrawlOptions = {
   onPage?: (event: { num: number; topicsScanned: number }) => void;
 };
 
+/**
+ * In-library, `startedAt` and `finishedAt` are `Date` objects. Note that when
+ * a `CrawlResult` is serialized via `JSON.stringify` (as the CLI does), these
+ * become ISO-8601 strings on disk — see `schema/crawl-result.schema.json`.
+ * Consumers re-reading the CLI's JSON output should parse them with `new Date(...)`.
+ */
 export type CrawlResult = {
   slug: string;
   startedAt: Date;
