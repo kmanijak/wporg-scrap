@@ -5,15 +5,28 @@ Scrape a WordPress.org plugin support forum into a local JSON file.
 ## Configuration
 
 The scraper sends every request with a `User-Agent` that includes a contact
-email, so wp.org admins can reach you if something misbehaves. This is
-required — set it via environment variable before running:
+email, so wp.org admins can reach you if something misbehaves. Set it via
+the `WPORG_SCRAP_EMAIL` environment variable — the CLI throws a clear error
+before making any network request if it's unset.
+
+Copy the template and fill it in:
 
 ```bash
-export WPORG_SCRAP_EMAIL=you@example.com
+cp .env.example .env
+# edit .env and set WPORG_SCRAP_EMAIL=you@example.com
 ```
 
-If `WPORG_SCRAP_EMAIL` is unset, the CLI throws a clear error before making
-any network request.
+`.env` is gitignored. The scraper does **not** auto-load it — source it
+yourself before running, or export the variable inline:
+
+```bash
+# one-shot inline
+WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce
+
+# source .env for the current shell
+set -a; source .env; set +a
+pnpm scrape woocommerce
+```
 
 ## Use it in this repo
 
