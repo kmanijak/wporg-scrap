@@ -1,5 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
-import { fetchText } from './http.ts';
+import type { HttpClient } from './http.ts';
 import { htmlToMarkdown } from './convert.ts';
 import type { ListingRow, Post, Topic } from './types.ts';
 
@@ -17,9 +17,9 @@ type RssItem = {
   description?: unknown;
 };
 
-export async function hydrateTopic(row: ListingRow): Promise<Topic> {
+export async function hydrateTopic(row: ListingRow, http: HttpClient): Promise<Topic> {
   const feedUrl = `https://wordpress.org/support/topic/${row.topic_slug}/feed/`;
-  const xml = await fetchText(feedUrl);
+  const xml = await http.fetchText(feedUrl);
   const parsed = parser.parse(xml);
   const channel = parsed?.rss?.channel;
   if (!channel) throw new Error(`Missing RSS channel at ${feedUrl}`);

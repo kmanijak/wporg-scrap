@@ -2,7 +2,7 @@
 import { writeFile, rename, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseListingPage, buildListingUrl } from './listings.ts';
-import { fetchText, HttpBailError } from './http.ts';
+import { createHttpClient, HttpBailError, type HttpClient } from './http.ts';
 import { hydrateTopic } from './threads.ts';
 import type { ListingRow, Topic, ScrapeResult } from './types.ts';
 
@@ -38,13 +38,13 @@ function parseArgs(argv: string[]): Args {
   return { slug, maxPages };
 }
 
-async function discover(slug: string, maxPages: number): Promise<ListingRow[]> {
+async function discover(slug: string, maxPages: number, http: HttpClient): Promise<ListingRow[]> {
   const byTopicSlug = new Map<string, ListingRow>();
   for (let p = 1; p <= maxPages; p++) {
     const url = buildListingUrl(slug, p);
     let html: string;
     try {
-      html = await fetchText(url);
+      html = await http.fetchText(url);
     } catch (err) {
       // 404 after a run of successful pages = end of archive, not a failure.
       if (err instanceof HttpBailError && err.status === 404 && p > 1) {
@@ -69,6 +69,7 @@ async function discover(slug: string, maxPages: number): Promise<ListingRow[]> {
 
 async function hydrate(
   rows: ListingRow[],
+  http: HttpClient,
 ): Promise<{ topics: Topic[]; skipped: number }> {
   const topics: Topic[] = [];
   let skipped = 0;
@@ -76,7 +77,7 @@ async function hydrate(
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]!;
     try {
-      const topic = await hydrateTopic(row);
+      const topic = await hydrateTopic(row, http);
       topics.push(topic);
       if ((i + 1) % 50 === 0 || i === 0) {
         console.error(`[hydrate ${i + 1}/${total}] ${row.topic_slug} ok`);
@@ -106,15 +107,23 @@ async function writeOutput(
 
 async function main(): Promise<void> {
   const { slug, maxPages } = parseArgs(process.argv);
+  const email = process.env.WPORG_SCRAP_EMAIL;
+  if (!email) {
+    throw new Error(
+      'Set WPORG_SCRAP_EMAIL to a contact email — wp.org asks scrapers to be identifiable. ' +
+        'Example: WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce',
+    );
+  }
+  const http = createHttpClient({ userAgent: `wporg-scrap/0.2 (+${email})` });
   const scraped_at = new Date().toISOString();
   console.error(
     `[scrape] slug=${slug} maxPages=${maxPages} scraped_at=${scraped_at}`,
   );
 
-  const rows = await discover(slug, maxPages);
+  const rows = await discover(slug, maxPages, http);
   console.error(`[scrape] discovery done: ${rows.length} unique topics`);
 
-  const { topics, skipped } = await hydrate(rows);
+  const { topics, skipped } = await hydrate(rows, http);
 
   const result: ScrapeResult = { slug, scraped_at, topics };
   const path = await writeOutput(slug, maxPages >= 50, result);
