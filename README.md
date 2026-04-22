@@ -1,53 +1,89 @@
 # wporg-scrap
 
-Scrape a WordPress.org plugin support forum into a local JSON file.
+Scrape a WordPress.org plugin support forum into structured data. Programmatic-first; the CLI is a thin wrapper.
 
 ## Configuration
 
-The scraper sends every request with a `User-Agent` that includes a contact
-email, so wp.org admins can reach you if something misbehaves. Set it via
-the `WPORG_SCRAP_EMAIL` environment variable — the CLI throws a clear error
-before making any network request if it's unset.
+The scraper's `User-Agent` includes a contact email so wp.org admins can reach you if something misbehaves. Consumers pass it as `email` to `crawl()`; the CLI reads it from the `WPORG_SCRAP_EMAIL` environment variable.
 
-Copy the template and fill it in:
+Copy the template and fill it in (CLI use only):
 
 ```bash
 cp .env.example .env
 # edit .env and set WPORG_SCRAP_EMAIL=you@example.com
 ```
 
-`.env` is gitignored. The scraper does **not** auto-load it — source it
-yourself before running, or export the variable inline:
+`.env` is gitignored. The CLI does **not** auto-load it — source it yourself before running, or export the variable inline:
 
 ```bash
-# one-shot inline
+# inline
 WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce
 
-# source .env for the current shell
+# source for the current shell
 set -a; source .env; set +a
 pnpm scrape woocommerce
 ```
 
-## Use it in this repo
+## Library API
 
-```bash
-pnpm install
-WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce              # full crawl → data/woocommerce.json
-WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce --pages 3    # smoke test → data/woocommerce.partial.json
+```ts
+import { crawl, type Topic, type CrawlResult } from 'wporg-scrap';
+
+const result = await crawl({
+  slug: 'woocommerce',
+  email: process.env.WPORG_SCRAP_EMAIL!,
+
+  // Incremental mode (optional — omit for a full crawl)
+  since: {
+    activityAt: lastRunAt,                                  // Date — stop paginating when page-min ≤ this
+    topics: new Map([['some-topic-slug', 3], /* ... */]),   // slug → reply_count cache; match = skip
+  },
+
+  maxPages: 50,                                             // optional dev cap
+  skipStickies: true,                                        // default true; set false to keep pinned topics
+  onPage: ({ num, topicsScanned }) => console.log(num, topicsScanned),
+});
+
+// result: {
+//   slug, startedAt, finishedAt, scannedPages,
+//   topics,                       // full hydrated Topic[] for added + updated
+//   added, updated, seenUnchanged, // string[] classification overlay
+//   stopReason,                   // 'complete' | 'cutoff' | 'end-of-archive' | 'max-pages'
+//   partialFailures,              // per-topic hydration failures
+// }
 ```
 
-Output shape: `{ slug, scraped_at, topics: [{ url, topic_slug, title, author, pub_date, last_activity_at, last_activity_author, reply_count, voice_count, is_resolved, opener: { author, pub_date, body_md }, replies: [...] }] }`.
+See `schema/crawl-result.schema.json` for the serialized shape.
 
-Full runs take ~13 min (wp.org caps pagination around 49–50 pages × 30 topics).
+## CLI
+
+```bash
+WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce                      # full crawl → data/woocommerce.json
+WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce --pages 3            # smoke test → data/woocommerce.partial.json
+WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce \
+  --since-file state.json --out data/woocommerce-delta.json                    # incremental
+```
+
+State file shape (CLI only):
+
+```json
+{
+  "activityAt": "2026-04-20T12:00:00Z",
+  "topics": {
+    "some-topic-slug": 3,
+    "another-topic-slug": 7
+  }
+}
+```
 
 ## Install in another project
 
 From GitHub:
 
 ```bash
-pnpm add github:<owner>/wporg-scrap
-# or, for SSH:
-pnpm add git+ssh://git@github.com:<owner>/wporg-scrap.git
+pnpm add github:kmanijak/wporg-scrap
+# or SSH:
+pnpm add git+ssh://git@github.com:kmanijak/wporg-scrap.git
 ```
 
 From a local checkout:
@@ -57,19 +93,25 @@ pnpm add file:../wporg-scrap        # copy
 pnpm add link:../wporg-scrap        # symlink (picks up edits)
 ```
 
-Then run the CLI via the `bin` (don't forget the env var):
+Programmatic use (recommended):
+
+```ts
+import { crawl } from 'wporg-scrap';
+```
+
+CLI use via `bin`:
 
 ```bash
 WPORG_SCRAP_EMAIL=you@example.com pnpm exec wporg-scrape woocommerce --pages 3
 ```
 
-The script executes its TypeScript source via `tsx` (no build step). Output lands in `./data/{slug}.json` (or `.partial.json` if `--pages < 50`) in the **consuming project's** working directory.
-
 ## Design notes
 
 - Two-phase serial crawl: HTML listing pagination for discovery, per-thread RSS (`/topic/{slug}/feed/`) for body hydration.
 - 500ms rate limit, 15s timeout, 429 Retry-After honored, 5xx/network retried up to 2x.
-- Discovery halts on fatal errors (except `HTTP 404` on `page/N` after valid pages — that's end-of-archive).
-- Hydration skips individual topic failures and exits non-zero if any were skipped.
-- Atomic write (`.tmp` → rename).
-
+- Discovery halts on fatal errors. A 404 on page > 1 is treated as end-of-archive (stopReason=`end-of-archive`).
+- Hydration failures per topic are captured in `partialFailures`; the crawl continues.
+- Stickies are dropped at parse time by default; opt in with `skipStickies: false`.
+- The cutoff rule always uses non-sticky rows for the page-min computation, independent of `skipStickies`.
+- Skip-vs-hydrate cache uses `reply_count` only — silent edits of existing posts are not detected. By design.
+- Atomic write (`.tmp` → rename) in the CLI.

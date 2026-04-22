@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kmanijak/wporg-scrap/blob/main/schema/crawl-result.schema.json",
+  "title": "CrawlResult",
+  "description": "Output of wporg-scrap crawl(): one JSON file per WordPress.org plugin slug, capturing a single crawl run.",
+  "type": "object",
+  "required": [
+    "slug",
+    "startedAt",
+    "finishedAt",
+    "scannedPages",
+    "topics",
+    "added",
+    "updated",
+    "seenUnchanged",
+    "stopReason",
+    "partialFailures"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "slug": { "type": "string" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "scannedPages": { "type": "integer", "minimum": 0 },
+    "topics": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Topic" },
+      "description": "Hydrated topics. Slugs here correspond to added + updated (not seenUnchanged)."
+    },
+    "added": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Slugs not present in since.topics (or since was absent)."
+    },
+    "updated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Slugs whose reply_count differs from since.topics."
+    },
+    "seenUnchanged": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Slugs whose reply_count matched since.topics; hydration skipped."
+    },
+    "stopReason": {
+      "type": "string",
+      "enum": ["complete", "cutoff", "end-of-archive", "max-pages"]
+    },
+    "partialFailures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["topic_slug", "url", "error"],
+        "additionalProperties": false,
+        "properties": {
+          "topic_slug": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "error": { "type": "string" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Post": {
+      "type": "object",
+      "required": ["author", "pub_date", "body_md"],
+      "additionalProperties": false,
+      "properties": {
+        "author": { "type": "string" },
+        "pub_date": { "type": "string" },
+        "body_md": { "type": "string" }
+      }
+    },
+    "Topic": {
+      "type": "object",
+      "required": [
+        "url",
+        "topic_slug",
+        "title",
+        "author",
+        "last_activity_at",
+        "last_activity_author",
+        "reply_count",
+        "voice_count",
+        "is_resolved",
+        "is_sticky",
+        "pub_date",
+        "opener",
+        "replies"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "topic_slug": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "pub_date": { "type": "string" },
+        "last_activity_at": { "type": "string" },
+        "last_activity_author": { "type": "string" },
+        "reply_count": { "type": "integer", "minimum": 0 },
+        "voice_count": { "type": "integer", "minimum": 0 },
+        "is_resolved": { "type": "boolean" },
+        "is_sticky": { "type": "boolean" },
+        "opener": { "$ref": "#/definitions/Post" },
+        "replies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Post" }
+        }
+      }
+    }
+  }
+}
