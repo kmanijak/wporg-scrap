@@ -36,7 +36,7 @@ WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce              # full cr
 WPORG_SCRAP_EMAIL=you@example.com pnpm scrape woocommerce --pages 3    # smoke test → data/woocommerce.partial.json
 ```
 
-Output shape: `{ slug, scraped_at, topics: [{ url, topic_slug, title, author, pub_date, last_activity_at, last_activity_author, reply_count, voice_count, is_resolved, opener: { author, pub_date, body_md }, replies: [...] }] }`.
+Output shape is documented in a JSON Schema at [`schema/scrape-result.schema.json`](./schema/scrape-result.schema.json). Summary: `{ slug, scraped_at, topics: [{ url, topic_slug, title, author, pub_date, last_activity_at, last_activity_author, reply_count, voice_count, is_resolved, opener: { author, pub_date, body_md }, replies: [...] }] }`.
 
 Full runs take ~13 min (wp.org caps pagination around 49–50 pages × 30 topics).
 
