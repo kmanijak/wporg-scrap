@@ -12,9 +12,9 @@ export function parseListingPage(html: string): ListingRow[] {
   const rows: ListingRow[] = [];
   const seen = new Set<string>();
 
-  // Row-scoping selector: ul[id^="bbp-topic-"] matches all topic rows.
-  // Sticky topics carry the class "sticky" on the ul; we include them as they are
-  // legitimate forum threads (the de-dup on topic_slug handles any repeats safely).
+  // Every row carries `is_sticky` derived from the `sticky` class on its <ul>
+  // wrapper. This parser does NOT filter stickies — higher layers (see
+  // `discover.ts` / the `skipStickies` crawl option) decide whether to keep them.
   const topicEls = root.querySelectorAll('ul[id^="bbp-topic-"]');
 
   for (const el of topicEls) {
@@ -58,6 +58,8 @@ export function parseListingPage(html: string): ListingRow[] {
     // Resolved marker: span.resolved is inside the title permalink <a>.
     const is_resolved = !!el.querySelector('span.resolved');
 
+    const is_sticky = el.classList.contains('sticky');
+
     rows.push({
       url,
       topic_slug,
@@ -68,7 +70,7 @@ export function parseListingPage(html: string): ListingRow[] {
       reply_count,
       voice_count,
       is_resolved,
-      is_sticky: false,
+      is_sticky,
     });
   }
 
