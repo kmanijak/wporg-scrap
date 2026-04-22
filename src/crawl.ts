@@ -13,14 +13,20 @@ const DEFAULT_MAX_PAGES = 50;
 
 export async function crawl(options: CrawlOptions): Promise<CrawlResult> {
   if (!options.slug) throw new Error('crawl: options.slug is required');
-  if (!options.email) throw new Error('crawl: options.email is required');
+  if (!options.http && !options.email) {
+    throw new Error(
+      'crawl: options.email is required (unless you pass options.http for testing/advanced use)',
+    );
+  }
 
   const startedAt = new Date();
   const maxPages = options.maxPages ?? DEFAULT_MAX_PAGES;
   const skipStickies = options.skipStickies ?? true;
-  const http = createHttpClient({
-    userAgent: `wporg-scrap/0.2 (+${options.email})`,
-  });
+  const http =
+    options.http ??
+    createHttpClient({
+      userAgent: `wporg-scrap/0.2 (+${options.email})`,
+    });
 
   const { rows, scannedPages, stopReason } = await discover({
     slug: options.slug,

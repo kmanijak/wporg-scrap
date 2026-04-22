@@ -15,7 +15,8 @@
     "wporg-scrape": "src/scrape.ts"
   },
   "scripts": {
-    "scrape": "tsx src/scrape.ts"
+    "scrape": "tsx src/scrape.ts",
+    "test": "tsx --test src/**/*.test.ts"
   },
   "files": [
     "src",

@@ -1,3 +1,5 @@
+import type { HttpClient } from './http.ts';
+
 export type ListingRow = {
   url: string;
   topic_slug: string;
@@ -33,7 +35,8 @@ export type PartialFailure = {
 
 export type CrawlOptions = {
   slug: string;
-  email: string;
+  /** Contact email used in the default User-Agent. Required unless you pass a pre-built `http` client. */
+  email?: string;
   since?: {
     activityAt?: Date;
     topics?: Map<string, number>;
@@ -41,6 +44,11 @@ export type CrawlOptions = {
   maxPages?: number;
   skipStickies?: boolean;
   onPage?: (event: { num: number; topicsScanned: number }) => void;
+  /**
+   * Advanced / testing: override the HTTP client. When provided, `email` is not required
+   * and the library will NOT create an internal client (your User-Agent and retry policy win).
+   */
+  http?: HttpClient;
 };
 
 /**
