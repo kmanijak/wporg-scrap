@@ -68,6 +68,7 @@ export function parseListingPage(html: string): ListingRow[] {
       reply_count,
       voice_count,
       is_resolved,
+      is_sticky: false,
     });
   }
 
