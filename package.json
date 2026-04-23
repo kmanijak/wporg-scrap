@@ -1,27 +1,33 @@
 {
   "name": "wporg-scrap",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
-  "main": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "bin": {
-    "wporg-scrape": "src/scrape.ts"
+    "wporg-scrape": "./dist/scrape.js"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc",
     "scrape": "tsx src/scrape.ts",
     "test": "tsx --test src/**/*.test.ts"
   },
   "files": [
-    "src",
+    "dist",
     "schema",
-    "tsconfig.json",
     "README.md",
     "LICENSE"
   ],

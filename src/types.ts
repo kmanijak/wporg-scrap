@@ -1,4 +1,4 @@
-import type { HttpClient } from './http.ts';
+import type { HttpClient } from './http.js';
 
 export type ListingRow = {
   url: string;

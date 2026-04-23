@@ -1,13 +1,13 @@
-import { createHttpClient } from './http.ts';
-import { discover } from './discover.ts';
-import { hydrateTopic } from './hydrate.ts';
+import { createHttpClient } from './http.js';
+import { discover } from './discover.js';
+import { hydrateTopic } from './hydrate.js';
 import type {
   CrawlOptions,
   CrawlResult,
   ListingRow,
   PartialFailure,
   Topic,
-} from './types.ts';
+} from './types.js';
 
 const DEFAULT_MAX_PAGES = 50;
 

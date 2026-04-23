@@ -1,7 +1,7 @@
 import { XMLParser } from 'fast-xml-parser';
-import type { HttpClient } from './http.ts';
-import { htmlToMarkdown } from './convert.ts';
-import type { ListingRow, Post, Topic } from './types.ts';
+import type { HttpClient } from './http.js';
+import { htmlToMarkdown } from './convert.js';
+import type { ListingRow, Post, Topic } from './types.js';
 
 const parser = new XMLParser({
   ignoreAttributes: false,

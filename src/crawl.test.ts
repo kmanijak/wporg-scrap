@@ -1,9 +1,9 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { crawl } from './crawl.ts';
-import { HttpBailError } from './http.ts';
-import type { HttpClient } from './http.ts';
+import { crawl } from './crawl.js';
+import { HttpBailError } from './http.js';
+import type { HttpClient } from './http.js';
 
 const LISTING_URL = 'https://wordpress.org/support/plugin/woocommerce/';
 const LISTING_URL_PAGE = (n: number) =>

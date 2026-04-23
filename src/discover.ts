@@ -1,7 +1,7 @@
-import type { HttpClient } from './http.ts';
-import { HttpBailError } from './http.ts';
-import { parseListingPage, buildListingUrl } from './listings.ts';
-import type { ListingRow, StopReason } from './types.ts';
+import type { HttpClient } from './http.js';
+import { HttpBailError } from './http.js';
+import { parseListingPage, buildListingUrl } from './listings.js';
+import type { ListingRow, StopReason } from './types.js';
 
 export type DiscoverOptions = {
   slug: string;

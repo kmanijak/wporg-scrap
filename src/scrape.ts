@@ -1,8 +1,8 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { writeFile, readFile, rename, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { crawl } from './crawl.ts';
-import type { CrawlOptions, CrawlResult } from './types.ts';
+import { crawl } from './crawl.js';
+import type { CrawlOptions, CrawlResult } from './types.js';
 
 type Args = {
   slug: string;

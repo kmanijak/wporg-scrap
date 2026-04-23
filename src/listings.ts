@@ -1,5 +1,5 @@
 import { parse, type HTMLElement } from 'node-html-parser';
-import type { ListingRow } from './types.ts';
+import type { ListingRow } from './types.js';
 
 export function buildListingUrl(slug: string, page: number): string {
   return page === 1

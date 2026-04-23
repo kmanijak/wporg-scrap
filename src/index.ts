@@ -1,4 +1,4 @@
-export { crawl } from './crawl.ts';
+export { crawl } from './crawl.js';
 export type {
   CrawlOptions,
   CrawlResult,
@@ -7,5 +7,5 @@ export type {
   Topic,
   StopReason,
   PartialFailure,
-} from './types.ts';
-export { HttpBailError } from './http.ts';
+} from './types.js';
+export { HttpBailError } from './http.js';
